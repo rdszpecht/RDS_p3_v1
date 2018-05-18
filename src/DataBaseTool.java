@@ -1,11 +1,7 @@
+import javafx.util.Pair;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,11 +26,22 @@ public class DataBaseTool {
         return s;
     }
 
+    private int comparator(Movie m1, Movie m2){
+        if (m1.getRevenue() == m2.getRevenue()) {
+            return 0;
+        } else if(m1.getRevenue() > m2.getRevenue()){
+            return 1;
+        } else{
+            return -1;
+        }
+    }
+
     public void csvToList(String csvPath){
         try (BufferedReader bf = new BufferedReader(new FileReader(csvPath))) {
             movies = bf.lines()
                     .skip(1)
                     .map(line -> line.split(";"))
+                    .filter(l -> !l[7].equals(""))
                     .map(tokens ->  {
                         try {
                             long budget = Long.parseLong(tokens[0]);
@@ -110,38 +117,53 @@ public class DataBaseTool {
         System.out.println("Maximum revenue -> " + maxCash.getRevenue() + " by the " + maxCash);
     }
 
-    private int comparator(Movie m1, Movie m2){
-        if (m1.getRevenue() == m2.getRevenue()) {
-            return 0;
-        } else if(m1.getRevenue() > m2.getRevenue()){
-            return 1;
-        } else{
-            return -1;
-        }
-    }
-
     public List<Movie> getPopularInLanguage(String language, int popularity){
-        movies
+        List<Movie> selectedMovies = movies
                 .parallelStream()
-                .filter(m -> m.get)
-    }
-/*
-    public double getTotalIncomeOfYear (int year){
-        // Diapo 26 y demás
-        double toRet = 0.0;
-        if((year > 1900) || (year < 2020)){
+                .filter(m -> m.getOriginal_language().equals(language))
+                .filter(m -> m.getPopularity() >= popularity)
+                .collect(Collectors.toList());
 
+        return selectedMovies;
+    }
+
+    public long getTotalIncomeOfYear (int year){
+        long sum = 0;
+        if((year > 1900) && (year < 2020)){
+            sum = movies
+                    .parallelStream()
+                    .filter(m -> m.getRelease_date().split("/")[2].equals(String.valueOf(year)))
+                    .collect(Collectors.summarizingLong(m -> m.getRevenue())).getSum();
         }
-        return toRet;
+        return sum;
     }
 
-    public int getTotalVotesBtw (double min, double max){
-
+    public long getTotalVotesBtw (double min, double max){
+        return movies
+                .parallelStream()
+                .filter(m -> m.getVote_average() >= min)
+                .filter(m -> m.getVote_average() <= max)
+                .collect(Collectors.summarizingLong(m -> m.getVote_count())).getSum();
     }
 
-    public Map<String,String> getMapProducersTitles (){
-        // Map reduce ?
-        // Diapo 25 del tema de streams
+    public Map<String,List<String>> getMapProducersTitles (){
+        Map<String,List<String>> map = movies
+                .parallelStream()
+                .map(m -> m.getProduction_companies())
+                .flatMap(pc -> Arrays.stream(pc.toArray()))
+                .distinct()
+                .map(c -> {
+                    List<String> titles = movies
+                            .stream()
+                            .filter(m -> m.getProduction_companies().contains(c))
+                            .map(m -> m.getOriginal_title())
+                            .collect(Collectors.toList());
+
+                    String nameOfCompany = c.toString().split(":")[1].split(",")[0] + "(" + c.toString().split("\"id\":")[1].split("}")[0] + ")";
+                    return new Pair<String,List<String>>(nameOfCompany,titles);
+                })
+                .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+
+        return map;
     }
-*/
 }

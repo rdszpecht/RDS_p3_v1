@@ -10,7 +10,7 @@ class main{
         DataBaseTool dbt = new DataBaseTool();
 
         while(!end){
-            System.out.println("Select your Option (\"Help\" for option list):");
+            System.out.println("\n\nSelect your Option (\"Help\" for option list):");
             buffer = scanner.nextLine();
             buffer = buffer.toLowerCase();
             String temp;
@@ -65,11 +65,11 @@ class main{
                     temp = scanner.nextLine();
                     dbt.getPopularInLanguage(language, Integer.parseInt(temp));
                     break;
-/*
+
                 case "6":
                     System.out.println("Type the year: ");
                     temp = scanner.nextLine();
-                    dbt.getTotalIncomeOfYear(Integer.parseInt(temp));
+                    System.out.println("Total income: " + dbt.getTotalIncomeOfYear(Integer.parseInt(temp)));
                     break;
 
                 case "7":
@@ -77,15 +77,17 @@ class main{
                     temp = scanner.nextLine();
                     double dmin = Double.parseDouble(temp.split(",")[0]);
                     double dmax = Double.parseDouble(temp.split(",")[1]);
-                    dbt.getTotalVotesBtw(dmin, dmax);
+                    System.out.println("Total votes: " + dbt.getTotalVotesBtw(dmin, dmax));
                     break;
 
                 case "8":
-                    Map<String,String> map = dbt.getMapProducersTitles();
-                    System.out.println("Map ocurrences of Columbia Pictures: ");
-                    System.out.println(map.get("Columbia Pictures"));
+                    // Notice that i hace stored Production Company Name along with it's ID
+                    // That is because it turns out that in the data base, there are companies
+                    //   with same name, but different ids.
+                    Map<String,List<String>> map = dbt.getMapProducersTitles();
+                    System.out.println("For example, map value for entry: \"Columbia Pictures(5)\" is:");
+                    System.out.println(map.get("\"Columbia Pictures\"(5)"));
                     break;
-                    */
 
                 case "end":
                     end = true;
